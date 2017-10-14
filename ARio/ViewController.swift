@@ -28,6 +28,7 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         // Set the scene to the view
         sceneView.scene = scene
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -62,6 +63,17 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         return node
     }
 */
+    
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        guard let pixelBuffer = sceneView.session.currentFrame?.capturedImage else {return}
+        
+        let ciImage = CIImage(cvPixelBuffer: pixelBuffer)
+        let temporaryContext = CIContext(options: nil)
+        let videoImage = temporaryContext.createCGImage(ciImage, from: CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetHeight(pixelBuffer)))
+        
+        let uiImage = UIImage(cgImage: videoImage!)
+        print(uiImage)
+    }
     
     func session(_ session: ARSession, didFailWithError error: Error) {
         // Present an error message to the user
