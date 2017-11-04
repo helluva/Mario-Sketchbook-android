@@ -27,8 +27,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, CameraViewActivity.class);
                 MainActivity.this.startActivity(i);
-    }
-});
+            }
+        });
 
         //transition to mario scene
         Button openMarioButton = (Button) this.findViewById(R.id.open_mario_button);
