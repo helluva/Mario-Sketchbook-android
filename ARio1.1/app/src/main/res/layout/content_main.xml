@@ -10,12 +10,21 @@
 
 
     <Button
-        android:id="@+id/gotocamera_button"
+        android:id="@+id/open_mario_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start Camera View"
-        android:layout_marginTop="173dp"
+        android:layout_alignEnd="@+id/gotocamera_button2"
+        android:layout_below="@+id/gotocamera_button2"
+        android:layout_marginTop="40dp"
+        android:text="Open Mario Scene" />
+
+    <Button
+        android:id="@+id/gotocamera_button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="173dp"
+        android:text="Start Camera View" />
 
 </RelativeLayout>

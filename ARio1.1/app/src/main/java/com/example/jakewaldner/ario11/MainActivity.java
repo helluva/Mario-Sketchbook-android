@@ -20,12 +20,22 @@ public class MainActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        //handles transition to cameraview
-        Button goToCodesListButton = (Button) this.findViewById(R.id.gotocamera_button);
+        //transition to cameraview
+        Button goToCodesListButton = (Button) this.findViewById(R.id.gotocamera_button2);
         goToCodesListButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, CameraViewActivity.class);
+                MainActivity.this.startActivity(i);
+    }
+});
+
+        //transition to mario scene
+        Button openMarioButton = (Button) this.findViewById(R.id.open_mario_button);
+        openMarioButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MainActivity.this, MarioActivity.class);
                 MainActivity.this.startActivity(i);
             }
         });
