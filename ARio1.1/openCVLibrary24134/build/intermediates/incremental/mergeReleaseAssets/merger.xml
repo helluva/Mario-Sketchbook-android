@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merger version="3"><dataSet config="main"><source path="/Users/jakewaldner/Documents/GitHub/ARio/ARio1.1/openCVLibrary24134/src/main/assets"/><source path="/Users/jakewaldner/Documents/GitHub/ARio/ARio1.1/openCVLibrary24134/build/generated/assets/shaders/release"/></dataSet><dataSet config="release"><source path="/Users/jakewaldner/Documents/GitHub/ARio/ARio1.1/openCVLibrary24134/src/release/assets"/></dataSet></merger>
