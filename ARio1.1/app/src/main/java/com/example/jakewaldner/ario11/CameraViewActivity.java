@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 
+import org.opencv.android.CameraBridgeViewBase;
+
 /**
  * Created by jakewaldner on 11/4/17.
  */
