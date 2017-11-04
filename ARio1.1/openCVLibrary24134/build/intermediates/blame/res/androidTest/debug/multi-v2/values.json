@@ -1,6 +1,10 @@
 {
     "logs": [
         {
+            "outputFile": "/Users/jakewaldner/Documents/GitHub/ARio/ARio1.1/openCVLibrary24134/build/intermediates/incremental/mergeDebugAndroidTestResources/merged.dir/values/values.xml",
+            "map": []
+        },
+        {
             "outputFile": "/Users/cal/Documents/Xcode/ARio/ARio1.1/openCVLibrary24134/build/intermediates/incremental/mergeDebugAndroidTestResources/merged.dir/values/values.xml",
             "map": []
         }

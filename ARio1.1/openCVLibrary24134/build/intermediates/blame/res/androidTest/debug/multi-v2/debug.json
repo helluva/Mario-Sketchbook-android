@@ -1,6 +1,10 @@
 {
     "logs": [
         {
+            "outputFile": "/Users/jakewaldner/Documents/GitHub/ARio/ARio1.1/openCVLibrary24134/build/intermediates/res/merged/androidTest/debug/values_values.arsc.flat",
+            "map": []
+        },
+        {
             "outputFile": "/Users/cal/Documents/Xcode/ARio/ARio1.1/openCVLibrary24134/build/intermediates/res/merged/androidTest/debug/values_values.arsc.flat",
             "map": []
         }
