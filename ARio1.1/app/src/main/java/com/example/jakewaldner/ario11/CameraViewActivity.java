@@ -69,6 +69,23 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     }
 
     @Override
+    public void onCameraViewStarted(int width, int height) {
+
+    }
+
+    public Mat onCameraFrame(Mat inputFrame) {
+        //Mat cameraFrame = inputFrame.rgba();
+        return inputFrame;
+    }
+
+    @Override
+    public void onCameraViewStopped() {
+        // TODO Auto-generated method stub
+        finish();
+
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         Log.e(TAG, "onResume");
