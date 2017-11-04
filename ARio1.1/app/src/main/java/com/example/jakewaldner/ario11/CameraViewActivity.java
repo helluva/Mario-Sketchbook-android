@@ -24,7 +24,8 @@ import org.opencv.core.Mat;
  * Created by jakewaldner on 11/4/17.
  */
 
-public class CameraViewActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener {
+//CvCameraListener2 is just specific to the "onInputFrame" method taking in a cameraView frame as opposed to a Mat
+public class CameraViewActivity extends Activity implements CameraBridgeViewBase.CvCameraViewListener2 {
     Context context = this;
     private static final String TAG = "AndroidCameraApi";
 
@@ -73,16 +74,15 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
     }
 
-    public Mat onCameraFrame(Mat inputFrame) {
-        //Mat cameraFrame = inputFrame.rgba();
-        return inputFrame;
+    public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Mat cameraFrame = inputFrame.rgba();
+        return cameraFrame;
     }
 
     @Override
     public void onCameraViewStopped() {
         // TODO Auto-generated method stub
         finish();
-
     }
 
     @Override
