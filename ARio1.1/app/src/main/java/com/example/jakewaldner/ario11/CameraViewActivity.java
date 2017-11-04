@@ -89,12 +89,6 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     protected void onResume() {
         super.onResume();
         Log.e(TAG, "onResume");
-        //startBackgroundThread();
-        /*if (textureView.isAvailable()) {
-            openCamera();
-        } else {
-            textureView.setSurfaceTextureListener(textureListener);
-        }*/
 
         //checked if OpenCV library have been loaded and initialized from within current application package or not
         //THIS IS FOR THE MAT ERROR
