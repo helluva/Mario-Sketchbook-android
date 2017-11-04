@@ -71,17 +71,21 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
     @Override
     public void onCameraViewStarted(int width, int height) {
-
+        //CONSIDER THIS FOR LATER PERHAPS??
     }
 
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        //THIS FRAME IS NOW A MAT OBJECT
         Mat cameraFrame = inputFrame.rgba();
+
+        //THIS IS WHERE THE PROCESSING MEAT GOES
         return cameraFrame;
     }
 
     @Override
     public void onCameraViewStopped() {
         // TODO Auto-generated method stub
+        //MIGHT WANT TO TRY THAT MAT.RELSEASE THING FROM STACKO HERE TO POSSIBLY IMPR0VE FRAMERATE?
         finish();
     }
 
