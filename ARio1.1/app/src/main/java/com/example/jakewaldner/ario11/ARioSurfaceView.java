@@ -177,8 +177,13 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         canvas.drawColor(Color.BLACK);
 
+        canvas.drawBitmap(cameraInput,
+                null,
+                new Rect(0, 0, canvasWidth, canvasHeight),
+                null);
+
         //skew in 3d
-        /*Camera cam = new Camera();
+        Camera cam = new Camera();
         cam.translate(0, 0, 300);
         cam.rotateX(30);
 
@@ -189,9 +194,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int CenterY = canvasHeight / 2;
         m.preTranslate(-CenterX, -CenterY); //This is the key to getting the correct viewing perspective
         m.postTranslate(CenterX, CenterY);
-        canvas.setMatrix(m);*/
-
-
+        canvas.setMatrix(m);
+        
         canvas.drawBitmap((contourBitmap == null ? cameraInput : contourBitmap),
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
@@ -209,9 +213,9 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public Bitmap generateSceneBitmapFromUncroppedImage() {
         Matrix matrix = new Matrix();
         matrix.postRotate(90);
-        Bitmap rotatedUncropped = Bitmap.createBitmap(cameraInput, 0, 0, cameraInput.getWidth(), cameraInput.getHeight(), matrix, true);
+        cameraInput = Bitmap.createBitmap(cameraInput, 0, 0, cameraInput.getWidth(), cameraInput.getHeight(), matrix, true);
 
-        Bitmap scaledUncropped = Bitmap.createScaledBitmap(rotatedUncropped, canvasWidth, canvasHeight, false);
+        Bitmap scaledUncropped = Bitmap.createScaledBitmap(cameraInput, canvasWidth, canvasHeight, false);
 
         System.out.println("scaledUncropped has size " + scaledUncropped.getWidth() + " " + scaledUncropped.getHeight());
 
