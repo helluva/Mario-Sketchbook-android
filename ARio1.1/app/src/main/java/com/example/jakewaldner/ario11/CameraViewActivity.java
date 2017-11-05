@@ -199,10 +199,10 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             if (maxRectArea < rect.width * rect.height) {
                 maxRect = rect;
 
-                maxRectX = rect.x + 15;
-                maxRectY = rect.y + 15;
-                maxRectWidth = rect.width - 30;
-                maxRectHeight = rect.height - 30;
+                maxRectX = rect.x;
+                maxRectY = rect.y;
+                maxRectWidth = rect.width;
+                maxRectHeight = rect.height;
 
                 maxRectArea = rect.width * rect.height;
                 maxRectFound = true;
@@ -249,7 +249,8 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                 currMaxRectY1Sum = currMaxRectY1Sum + sumMaxRectY1.get(i);
             }*/
 
-            averageP1 = new Point(sumMaxRectScalar(sumMaxRectX1, maxRectX) / frameCounter, sumMaxRectScalar(sumMaxRectY1, maxRectY) / frameCounter);
+            averageP1 = new Point((sumMaxRectScalar(sumMaxRectX1, maxRectX) / frameCounter) - 30,
+                    (sumMaxRectScalar(sumMaxRectY1, maxRectY) / frameCounter) - 30);
 
 
             /*sumMaxRectX2.add(maxRectX + maxRectWidth);
@@ -275,7 +276,8 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             //sumMaxRectX2 = (sumMaxRectX2 + (maxRectX + maxRectWidth));
             //sumMaxRectY2 = (sumMaxRectY2 + (maxRectY + maxRectHeight));*/
 
-            averageP2 = new Point(sumMaxRectScalar(sumMaxRectX2, maxRectX + maxRectWidth) / frameCounter, sumMaxRectScalar(sumMaxRectY2, maxRectY + maxRectHeight) / frameCounter);
+            averageP2 = new Point((sumMaxRectScalar(sumMaxRectX2, maxRectX + maxRectWidth) / frameCounter) + 30,
+                    (sumMaxRectScalar(sumMaxRectY2, maxRectY + maxRectHeight) / frameCounter) + 30);
 
             /*if (frameCounter < 15) {
                 Core.rectangle(returnedFrameMat, new Point(maxRectX, maxRectY), new Point(maxRectX + maxRectWidth, maxRectY + maxRectHeight), new Scalar(255, 0, 0, 255), 3);
