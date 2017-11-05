@@ -13,12 +13,14 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.Toast;
 
 import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Core;
+import org.opencv.core.CvException;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
@@ -95,6 +97,25 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         mOpenCvCameraView = (CameraBridgeViewBase) findViewById(R.id.image_manipulations_activity_surface_view);
         mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
         mOpenCvCameraView.setCvCameraViewListener(this);
+
+        Button cropButton = (Button) this.findViewById(R.id.crop_button);
+        cropButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (cameraFrame != null && maxRect != null) {
+                    System.out.println(maxRect.x);
+                    System.out.println(maxRect.y);
+                    System.out.println(maxRect.width);
+                    System.out.println(maxRect.height);
+                    try {
+                        Mat imageCroppedMat = new Mat(cameraFrame, maxRect);
+                        imageCroppedMat.release();
+                    } catch(CvException e) {
+                        Toast.makeText(CameraViewActivity.this, "Whoops, didn't get that! Try again.",Toast.LENGTH_SHORT).show();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -104,9 +125,10 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
     //THIS IS WHERE THE PROCESSING MEAT GOES
     Mat returnedFrameMat;
+    Mat cameraFrame;
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         //THIS FRAME IS NOW A MAT OBJECT
-        Mat cameraFrame = inputFrame.rgba();
+        cameraFrame = inputFrame.rgba();
         Log.d("Mat1", "" + cameraFrame);
 
         //grayscale the frame
@@ -117,11 +139,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         Imgproc.dilate (newGrayFrame, dilatedFrame, new Mat());
 
         Mat blurredFrame = new Mat();
-        Imgproc.GaussianBlur(dilatedFrame, blurredFrame, new  org.opencv.core.Size(75, 75), 20, 20);
+        Imgproc.GaussianBlur(dilatedFrame, blurredFrame, new  org.opencv.core.Size(1, 1), 2, 2);
 
         //this finds all edge points
         Mat finalAlteredFrame = new Mat();
-        Imgproc.Canny(blurredFrame, finalAlteredFrame, 0, 200, 30, true);
+        Imgproc.Canny(blurredFrame, finalAlteredFrame, 0, 200, 3, true);
         Log.d("Mat2", "" + finalAlteredFrame);
 
         //this finds contours, connected edge points
@@ -254,6 +276,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         maxRectFound = false;
         maxRectArea = 0;
 
+
         //Imgproc.rectangle(returnedFrameMat, new Point(finalAlteredFrame.cols()/3, finalAlteredFrame.rows()/15), new Point((finalAlteredFrame.cols()/3) * 2, (finalAlteredFrame.rows()/15) * 14), new Scalar(255, 255, 0, 255), 5);
 
 
@@ -267,6 +290,9 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
         //just in case from async call
         testMat.release();
+
+        //this ensures when a crop is made on a frame with no maxRect, it doesn't crash
+        maxRect = null;
 
         return returnedFrameMat;
     }
