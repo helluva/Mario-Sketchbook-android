@@ -200,8 +200,8 @@ public class JavaCameraView extends CameraBridgeViewBase implements PreviewCallb
                     Log.d(TAG, "startPreview");
 
                     //THE DUMB CAMERA ROTATION THING BECAUSE ANDROID LIKES HORIZONTAL VIEW AS DEFAULT
-                    setDisplayOrientation(mCamera, 90);
-                    mCamera.setPreviewDisplay(getHolder());
+                    //setDisplayOrientation(mCamera, 90);
+                    //mCamera.setPreviewDisplay(getHolder());
 
 
                     mCamera.startPreview();
