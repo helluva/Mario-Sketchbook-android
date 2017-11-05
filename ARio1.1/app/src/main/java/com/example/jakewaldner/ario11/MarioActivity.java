@@ -1,5 +1,7 @@
 package com.example.jakewaldner.ario11;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -21,6 +23,10 @@ public class MarioActivity extends AppCompatActivity {
 
         final ARioSurfaceView arioSurface = (ARioSurfaceView) findViewById(R.id.ario_surface);
 
+        byte[] byteArray = getIntent().getByteArrayExtra("croppedRect");
+        Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+        arioSurface.uncroppedBackground = uncroppedBackground;
+
         Button leftButton = (Button) findViewById(R.id.leftButton);
         leftButton.setOnTouchListener(new OnTouchListener() {
 
@@ -31,7 +37,7 @@ public class MarioActivity extends AppCompatActivity {
                     return true;
                 }
 
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN || motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     arioSurface.movingLeft = true;
                 } else {
                     arioSurface.movingLeft = false;
@@ -52,7 +58,9 @@ public class MarioActivity extends AppCompatActivity {
                     return true;
                 }
 
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
+                System.out.println(motionEvent.getAction());
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN || motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
                     arioSurface.movingRight = true;
                 } else {
                     arioSurface.movingRight = false;

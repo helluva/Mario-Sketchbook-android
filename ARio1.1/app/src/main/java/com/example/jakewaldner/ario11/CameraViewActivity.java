@@ -31,6 +31,7 @@ import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,7 +102,6 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         Button cropButton = (Button) this.findViewById(R.id.crop_button);
-        final ARioSurfaceView arSurface = (ARioSurfaceView) this.findViewById(R.id.ar_surface_view);
 
         cropButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -118,7 +118,15 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                                 Bitmap.Config.ARGB_8888);
 
                         Utils.matToBitmap(imageCroppedMat, croppedBitmap);
-                        arSurface.startRenderingSceneWithBitmap(croppedBitmap);
+
+                        Intent i = new Intent(CameraViewActivity.this, MarioActivity.class);
+
+                        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+                        byte[] byteArray = stream.toByteArray();
+                        i.putExtra("croppedRect", byteArray);
+
+                        CameraViewActivity.this.startActivity(i);
 
                         imageCroppedMat.release();
                     } catch(CvException e) {
@@ -191,10 +199,10 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             if (maxRectArea < rect.width * rect.height) {
                 maxRect = rect;
 
-                maxRectX = rect.x;
-                maxRectY = rect.y;
-                maxRectWidth = rect.width;
-                maxRectHeight = rect.height;
+                maxRectX = rect.x - 30;
+                maxRectY = rect.y - 30;
+                maxRectWidth = rect.width + 60;
+                maxRectHeight = rect.height + 60;
 
                 maxRectArea = rect.width * rect.height;
                 maxRectFound = true;
