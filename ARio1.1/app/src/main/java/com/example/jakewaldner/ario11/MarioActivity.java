@@ -27,8 +27,10 @@ public class MarioActivity extends AppCompatActivity {
         final ARioSurfaceView arioSurface = (ARioSurfaceView) findViewById(R.id.ario_surface);
 
         byte[] byteArray = getIntent().getByteArrayExtra("croppedRect");
-        Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
-        arioSurface.uncroppedBackground = uncroppedBackground;
+        if (byteArray != null) {
+            Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
+            arioSurface.cameraInput = uncroppedBackground;
+        }
 
         Button leftButton = (Button) findViewById(R.id.leftButton);
         leftButton.setOnTouchListener(new OnTouchListener() {

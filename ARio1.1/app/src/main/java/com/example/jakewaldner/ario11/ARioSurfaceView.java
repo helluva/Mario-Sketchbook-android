@@ -114,7 +114,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             marioX += xOffset;
             marioY += yOffset;
 
-            System.out.println("OFFSET: (" + xOffset + "," + yOffset + ")");
+            //System.out.println("OFFSET: (" + xOffset + "," + yOffset + ")");
             return true;
         }
 
@@ -152,7 +152,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
 
 
-    public Bitmap uncroppedBackground = null; // vended by MarioActivity
+    Bitmap cameraInput = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_full_uncropped); // or vended by MarioActivity
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     Bitmap contourBitmap = null;
@@ -192,7 +192,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.setMatrix(m);*/
 
 
-        canvas.drawBitmap((contourBitmap == null ? uncroppedBackground : contourBitmap),
+        canvas.drawBitmap((contourBitmap == null ? cameraInput : contourBitmap),
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -207,15 +207,17 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     public Bitmap generateSceneBitmapFromUncroppedImage() {
-        Bitmap scaledUncropped = Bitmap.createScaledBitmap(uncroppedBackground, uncroppedBackground.getWidth(), uncroppedBackground.getHeight(), false);
-
         Matrix matrix = new Matrix();
         matrix.postRotate(90);
+        Bitmap rotatedUncropped = Bitmap.createBitmap(cameraInput, 0, 0, cameraInput.getWidth(), cameraInput.getHeight(), matrix, true);
 
-        scaledUncropped = Bitmap.createBitmap(scaledUncropped , 0, 0, scaledUncropped.getWidth(), scaledUncropped.getHeight(), matrix, true);
+        Bitmap scaledUncropped = Bitmap.createScaledBitmap(rotatedUncropped, canvasWidth, canvasHeight, false);
 
-        Mat src = new Mat();
+        System.out.println("scaledUncropped has size " + scaledUncropped.getWidth() + " " + scaledUncropped.getHeight());
+
+        Mat src = new Mat(canvasHeight, canvasWidth, CvType.CV_8U);
         Utils.bitmapToMat(scaledUncropped, src);
+        System.out.println("src size: " + src.width() + " " + src.height());
         Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
         Imgproc.blur(src, src, new Size(3, 3));
 
@@ -247,46 +249,40 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             }
         }
 
+        System.out.println("src size: " + src.width() + " " + src.height());
+
         if (largestRectangle == null) {
             return scaledUncropped;
         }
 
         ArrayList<MatOfPoint> contourToDraw = new ArrayList<>();
 
-        //MatOfPoint intContour = new MatOfPoint();
-        //largestRectangle.convertTo(intContour, CvType.CV_32S);
-        //contourToDraw.add(intContour);
-        //Imgproc.drawContours(src, contourToDraw, 0, new Scalar(255, 0, 0, 255), 10);
+        /*MatOfPoint intContour = new MatOfPoint();
+        largestRectangle.convertTo(intContour, CvType.CV_32S);
+        contourToDraw.add(intContour);
+        Imgproc.drawContours(src, contourToDraw, 0, new Scalar(255, 0, 0, 255), 10);*/
 
         System.out.println("CORNERS::::");
         System.out.println(largestRectangle.toArray()[0] +"" + largestRectangle.toArray()[1] +""+ largestRectangle.toArray()[2] + ""+largestRectangle.toArray()[3]);
 
         MatOfPoint2f destinationMat = new MatOfPoint2f(
-                new Point(canvasWidth - 1, 1),
-                new Point(1, 1),
-                new Point(1, canvasHeight - 1),
-                new Point(canvasWidth - 1, canvasHeight - 1)
+                new Point(0, 0),
+                new Point(0, canvasHeight),
+                new Point(canvasWidth, canvasHeight),
+                 new Point(canvasWidth, 0)
         );
 
-
         //rotate mat if it's not oriented correctly
-        double firstCoordinateDifference = abs(destinationMat.toList().get(0).x - destinationMat.toList().get(0).y);
-        double secondCoordinateDifference = abs(destinationMat.toList().get(1).x - destinationMat.toList().get(1).y);
-
-        boolean flip = (secondCoordinateDifference > firstCoordinateDifference);
-
         Mat transform = Imgproc.getPerspectiveTransform(largestRectangle, destinationMat);
-        if (flip) {
-            //idk, maybe rotate the transform mat somehow
-        }
-
 
         Mat croppedMat = new Mat();
         Imgproc.warpPerspective(src, croppedMat,
                 transform,
                 new Size(canvasWidth, canvasHeight));
 
-        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, uncroppedBackground.getConfig());
+        System.out.println("src size: " + src.width() + " " + src.height());
+
+        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledUncropped.getConfig());
         Utils.matToBitmap(croppedMat, tempBmp1);
         return tempBmp1;
     }
