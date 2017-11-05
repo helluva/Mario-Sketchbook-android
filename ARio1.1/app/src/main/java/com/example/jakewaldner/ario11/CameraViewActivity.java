@@ -111,7 +111,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                     System.out.println(averageP2);
                     try {
                         //FIRST EXTRA IS CROPPEDARRAY BITMAP
-                        Mat imageCroppedMat = new Mat(cameraFrame, new Rect(averageP1, averageP2));
+                        /*Mat imageCroppedMat = new Mat(cameraFrame, new Rect(averageP1, averageP2));
 
                         Bitmap croppedBitmap = Bitmap.createBitmap(
                                 imageCroppedMat.width(),
@@ -120,11 +120,9 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
                         Utils.matToBitmap(imageCroppedMat, croppedBitmap);
 
-                        Intent i = new Intent(CameraViewActivity.this, MarioActivity.class);
-
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
-                        byte[] byteArray = stream.toByteArray();
+                        byte[] byteArray = stream.toByteArray();*/
 
                         //****This was too much to send
                         //i.putExtra("croppedRect", byteArray);
@@ -136,15 +134,16 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                         //Bitmap cameraFrameBitmap = Bitmap.createBitmap(cameraFrame.cols(), cameraFrame.rows(), Bitmap.Config.ARGB_8888);
                         //Utils.matToBitmap(cameraFrame, cameraFrameBitmap);
 
+                        Intent i = new Intent(CameraViewActivity.this, MarioActivity.class);
+
                         ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-                        cameraFrameBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream2);
-                        byte[] byteArray2 = stream.toByteArray();
+                        cameraFrameBitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream2);
+                        byte[] byteArray2 = stream2.toByteArray();
                         i.putExtra("entireFrame", byteArray2);
 
 
                         CameraViewActivity.this.startActivity(i);
 
-                        imageCroppedMat.release();
                     } catch(CvException e) {
                         Toast.makeText(CameraViewActivity.this, "Whoops, didn't get that! Try again.",Toast.LENGTH_SHORT).show();
                     }
