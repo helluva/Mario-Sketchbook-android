@@ -102,13 +102,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         cropButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (cameraFrame != null && maxRect != null) {
-                    System.out.println(maxRect.x);
-                    System.out.println(maxRect.y);
-                    System.out.println(maxRect.width);
-                    System.out.println(maxRect.height);
+                if (cameraFrame != null && ((averageP1 != null) && (averageP2 != null))) {
+                    System.out.println(averageP1);
+                    System.out.println(averageP2);
                     try {
-                        Mat imageCroppedMat = new Mat(cameraFrame, maxRect);
+                        Mat imageCroppedMat = new Mat(cameraFrame, new Rect(averageP1, averageP2));
                         imageCroppedMat.release();
                     } catch(CvException e) {
                         Toast.makeText(CameraViewActivity.this, "Whoops, didn't get that! Try again.",Toast.LENGTH_SHORT).show();
@@ -126,6 +124,8 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     //THIS IS WHERE THE PROCESSING MEAT GOES
     Mat returnedFrameMat;
     Mat cameraFrame;
+    Point averageP1;
+    Point averageP2;
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         //THIS FRAME IS NOW A MAT OBJECT
         cameraFrame = inputFrame.rgba();
@@ -208,7 +208,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
         //COULD put this all in a function
         if(maxRectFound && verifySizes(maxRect)) {
-            sumMaxRectX1.add(maxRectX);
+            /*sumMaxRectX1.add(maxRectX);
             if (sumMaxRectX1.size() > 15) {
                 //this keeps the average coord pool down
                 sumMaxRectX1.remove();
@@ -226,12 +226,12 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             int currMaxRectY1Sum = 0;
             for (int i = 0; i < sumMaxRectY1.size(); i++) {
                 currMaxRectY1Sum = currMaxRectY1Sum + sumMaxRectY1.get(i);
-            }
+            }*/
 
-            Point averageP1 = new Point(currMaxRectX1Sum / frameCounter, currMaxRectY1Sum / frameCounter);
+            averageP1 = new Point(sumMaxRectScalar(sumMaxRectX1, maxRectX) / frameCounter, sumMaxRectScalar(sumMaxRectY1, maxRectY) / frameCounter);
 
 
-            sumMaxRectX2.add(maxRectX + maxRectWidth);
+            /*sumMaxRectX2.add(maxRectX + maxRectWidth);
             if (sumMaxRectX2.size() > 15) {
                 //this keeps the average coord pool down
                 sumMaxRectX2.remove();
@@ -252,9 +252,9 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             }
 
             //sumMaxRectX2 = (sumMaxRectX2 + (maxRectX + maxRectWidth));
-            //sumMaxRectY2 = (sumMaxRectY2 + (maxRectY + maxRectHeight));
+            //sumMaxRectY2 = (sumMaxRectY2 + (maxRectY + maxRectHeight));*/
 
-            Point averageP2 = new Point(currMaxRectX2Sum / frameCounter, currMaxRectY2Sum / frameCounter);
+            averageP2 = new Point(sumMaxRectScalar(sumMaxRectX2, maxRectX + maxRectWidth) / frameCounter, sumMaxRectScalar(sumMaxRectY2, maxRectY + maxRectHeight) / frameCounter);
 
             /*if (frameCounter < 15) {
                 Core.rectangle(returnedFrameMat, new Point(maxRectX, maxRectY), new Point(maxRectX + maxRectWidth, maxRectY + maxRectHeight), new Scalar(255, 0, 0, 255), 3);
@@ -295,6 +295,20 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         maxRect = null;
 
         return returnedFrameMat;
+    }
+
+    //this deals with the average position shifting
+    public int sumMaxRectScalar(LinkedList<Integer> maxRectScalarList, int maxRectScalar) {
+        maxRectScalarList.add(maxRectScalar);
+        if (maxRectScalarList.size() > 15) {
+            //this keeps the average coord pool down
+            maxRectScalarList.remove();
+        }
+        int currMaxRectX1Sum = 0;
+        for (int i = 0; i < maxRectScalarList.size(); i++) {
+            currMaxRectX1Sum = currMaxRectX1Sum + maxRectScalarList.get(i);
+        }
+        return currMaxRectX1Sum;
     }
 
     public boolean verifySizes(Rect rect) {
