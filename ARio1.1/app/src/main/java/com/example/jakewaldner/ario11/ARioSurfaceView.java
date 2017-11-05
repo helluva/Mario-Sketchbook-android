@@ -185,8 +185,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         //skew in 3d
         Camera cam = new Camera();
-        cam.translate(0, 0, 300);
-        cam.rotateX(30);
+        cam.translate(-20, 50, 300);
+        cam.rotateX(15);
 
         Matrix m = new Matrix();
         cam.getMatrix(m);
