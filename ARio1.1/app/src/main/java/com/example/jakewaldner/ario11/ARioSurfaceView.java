@@ -67,10 +67,25 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void updatePhysics() {
-        marioY += 15; //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
 
-        if (movingRight) marioX += 12;
-        if (movingLeft) marioX -= 12;
+        if (movingRight) {
+            boolean success = commitOffsetIfNoClipping(4, 0, false, true);
+            if (!success) { //try to walk over a small hump if mario can't move sideways
+                commitOffsetIfNoClipping(4, -4, false, true);
+            }
+        }
+
+        if (movingLeft) {
+            boolean success = commitOffsetIfNoClipping(-4, 0, false, true);
+            if (!success) { //try to walk over a small hump if mario can't move sideways
+                commitOffsetIfNoClipping(-4, -4, false, true);
+            }
+        }
 
         if (jumpStartTime != null) {
             long timeSinceJumpStart = System.currentTimeMillis() - jumpStartTime.getTime();
@@ -79,7 +94,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             } else {
                 double jumpProgress = ((double)timeSinceJumpStart) / ((double)jumpDurationMillis);
                 double jumpCurve = -pow(jumpProgress, 2) + 1; // -x^2 + 1
-                marioY -= (int)(jumpCurve * 35.0);
+
+                commitOffsetIfNoClipping(0, -(int)(jumpCurve * 25),false, false);
             }
         }
 
@@ -88,11 +104,29 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             marioX = min(max(0, marioX), canvasWidth - marioWidth);
         }
 
-        System.out.println(marioClipsWithContours());
-
     }
 
-    private boolean marioClipsWithContours() {
+    private boolean commitOffsetIfNoClipping(int xOffset, int yOffset, boolean onTop, boolean onBottom) {
+        if (!marioClipsWithContoursWhenOffsetBy(xOffset, yOffset, onTop, onBottom)) {
+            marioX += xOffset;
+            marioY += yOffset;
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean marioClipsWithContoursWhenOffsetBy(int xOffset, int yOffset, boolean onTop, boolean onBottom) {
+        int originX = marioX + xOffset;
+        int originY = marioY + yOffset;
+
+        return (onTop && pointClipsWithContours(originX, originY))
+                || (onTop && pointClipsWithContours(originX + marioWidth, originY))
+                || (onBottom && pointClipsWithContours(originX, originY + marioHeight))
+                || (onBottom && pointClipsWithContours(originX + marioWidth, originY + marioHeight));
+    }
+
+    private boolean pointClipsWithContours(int x, int y) {
         if (allContours == null) {
             return false;
         }
@@ -100,9 +134,9 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         for (MatOfPoint intContour : allContours) {
             MatOfPoint2f floatContour = new MatOfPoint2f();
             intContour.convertTo(floatContour, CvType.CV_32FC2);
-            System.out.print(intContour);
+            //System.out.print(intContour);
 
-            if (Imgproc.pointPolygonTest(floatContour, new Point(marioX, marioY), false) >= 0) {
+            if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), false) >= 0) {
                 return true;
             }
         }
@@ -128,7 +162,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.canvasHeight = canvas.getHeight();
         this.canvasWidth = canvas.getWidth();
 
-        canvas.drawBitmap(contourBitmap,
+        canvas.drawBitmap((contourBitmap == null ? sceneBackground : contourBitmap),
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -142,8 +176,11 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     public void generateContourBitmap() {
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(sceneBackground, canvasWidth, canvasHeight, false);
+
         Mat src = new Mat();
-        Utils.bitmapToMat(sceneBackground, src);
+        Utils.bitmapToMat(scaledBitmap, src);
         Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
         Imgproc.dilate (src, src, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)));
         Imgproc.blur(src, src, new Size(3, 3));
@@ -178,14 +215,13 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         // find contours:
         for (int contourIdx = 0; contourIdx < contours2.size(); contourIdx++) {
-            Imgproc.drawContours(src, contours2, contourIdx, new Scalar(0, 150, 255, 150), 20);
+            Imgproc.drawContours(src, contours2, contourIdx, new Scalar(0, 150, 255, 150), 5);
         }
 
         allContours = contours2;
 
         // create a blank temp bitmap:
-        Bitmap tempBmp1 = Bitmap.createBitmap(sceneBackground.getWidth(), sceneBackground.getHeight(),
-                sceneBackground.getConfig());
+        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledBitmap.getConfig());
 
         Utils.matToBitmap(src, tempBmp1);
         contourBitmap = tempBmp1;
@@ -207,7 +243,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             updatePhysics();
 
             //repeat
-            physicsHandler.postDelayed(physicsRunnable,10);
+            physicsHandler.postDelayed(physicsRunnable,3);
         }
     };
 
@@ -244,6 +280,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         System.out.println("Surface created");
         this.surfaceHolder = surfaceHolder;
+        renderCanvas();
 
         OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_13, this.getContext(), mLoaderCallback);
     }
