@@ -30,7 +30,6 @@ public class MarioActivity extends AppCompatActivity {
         Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         arioSurface.uncroppedBackground = uncroppedBackground;
 
-
         Button leftButton = (Button) findViewById(R.id.leftButton);
         leftButton.setOnTouchListener(new OnTouchListener() {
 
