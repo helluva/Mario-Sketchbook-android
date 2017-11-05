@@ -177,8 +177,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.drawColor(Color.BLACK);
 
         //skew in 3d
-        Camera cam = new Camera();
-        cam.translate(0, -200, 300);
+        /*Camera cam = new Camera();
+        cam.translate(0, 0, 300);
         cam.rotateX(30);
 
         Matrix m = new Matrix();
@@ -188,7 +188,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int CenterY = canvasHeight / 2;
         m.preTranslate(-CenterX, -CenterY); //This is the key to getting the correct viewing perspective
         m.postTranslate(CenterX, CenterY);
-        canvas.setMatrix(m);
+        canvas.setMatrix(m);*/
 
 
         canvas.drawBitmap((contourBitmap == null ? uncroppedBackground : contourBitmap),
@@ -213,7 +213,9 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         scaledUncropped = Bitmap.createBitmap(scaledUncropped , 0, 0, scaledUncropped.getWidth(), scaledUncropped.getHeight(), matrix, true);
 
-        Mat src = new Mat();
+        return scaledUncropped;
+
+        /*Mat src = new Mat();
         Utils.bitmapToMat(scaledUncropped, src);
         Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
         Imgproc.blur(src, src, new Size(3, 3));
@@ -273,7 +275,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, uncroppedBackground.getConfig());
         Utils.matToBitmap(croppedMat, tempBmp1);
-        return tempBmp1;
+        return tempBmp1;*/
     }
 
     public void generateContourBitmap(Bitmap croppedBitmap) {

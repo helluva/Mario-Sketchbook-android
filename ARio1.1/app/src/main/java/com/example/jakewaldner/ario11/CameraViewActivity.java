@@ -199,10 +199,10 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             if (maxRectArea < rect.width * rect.height) {
                 maxRect = rect;
 
-                maxRectX = rect.x - 30;
-                maxRectY = rect.y - 30;
-                maxRectWidth = rect.width + 60;
-                maxRectHeight = rect.height + 60;
+                maxRectX = rect.x + 15;
+                maxRectY = rect.y + 15;
+                maxRectWidth = rect.width - 30;
+                maxRectHeight = rect.height - 30;
 
                 maxRectArea = rect.width * rect.height;
                 maxRectFound = true;
