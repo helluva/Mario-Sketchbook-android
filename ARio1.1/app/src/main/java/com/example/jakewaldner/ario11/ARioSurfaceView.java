@@ -158,6 +158,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     Bitmap contourBitmap = null;
     List<MatOfPoint> allContours = null;
+    MatOfPoint2f pageRectContour = null;
 
 
     private boolean renderCanvas() {
@@ -166,9 +167,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
 
         Canvas canvas = null;
+        Rect dirtyRect = new Rect(marioX, marioY, marioX + marioWidth, marioY + marioHeight);
 
         try {
-            canvas = surfaceHolder.getSurface().lockCanvas(null);
+            canvas = surfaceHolder.getSurface().lockCanvas(dirtyRect);
         } catch (Exception e) {
             return false;
         }
@@ -176,15 +178,53 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.canvasHeight = canvas.getHeight();
         this.canvasWidth = canvas.getWidth();
 
-        canvas.drawColor(Color.BLACK);
+        //canvas.drawColor(Color.BLACK);
 
         canvas.drawBitmap(cameraInput,
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
 
+
+        try {
+            // render game scene into mat
+            Mat sceneMat = new Mat(canvasHeight, canvasWidth, CvType.CV_8U);
+            //Utils.bitmapToMat(contourBitmap, sceneMat);
+
+            Mat marioMat = new Mat(marioHeight, marioWidth, CvType.CV_8U);
+            Utils.bitmapToMat(marioSprite, marioMat);
+            marioMat.copyTo(sceneMat);
+
+            MatOfPoint2f originMatContour = new MatOfPoint2f(
+                    new Point(-marioX, -marioY),
+                    new Point(-marioX, canvasHeight),
+                    new Point(canvasWidth, canvasHeight),
+                     new Point(canvasWidth, -marioY)
+            );
+
+            Mat reskewedScene = new Mat(canvasHeight, canvasWidth, CvType.CV_8UC4);
+            Imgproc.warpPerspective(sceneMat, reskewedScene,
+                    Imgproc.getPerspectiveTransform(originMatContour, pageRectContour),
+                    new Size(canvasWidth, canvasHeight));
+
+            Bitmap reskewedSceneBitmap = Bitmap.createBitmap(canvasWidth, canvasHeight, cameraInput.getConfig());
+            Utils.matToBitmap(reskewedScene, reskewedSceneBitmap);
+
+            canvas.drawBitmap(reskewedSceneBitmap,
+                    null,
+                    new Rect(0, 0, canvasWidth, canvasHeight),
+                    null);
+
+        } catch (UnsatisfiedLinkError e) {
+            //OpenCV probably isn't loaded yet
+            System.out.println(e);
+        }
+
+        // render game mat onto canvas
+
+
         //skew in 3d
-        Camera cam = new Camera();
+        /*Camera cam = new Camera();
         cam.translate(0, 0, 300);
         cam.rotateX(30);
 
@@ -205,7 +245,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.drawBitmap(marioSprite,
                 null,
                 new Rect(marioX, marioY, marioX + marioHeight, marioY + marioHeight),
-                null);
+                null);*/
 
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
         return true;
@@ -259,6 +299,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (largestRectangle == null) {
             return scaledUncropped;
         }
+
+        pageRectContour = largestRectangle;
 
         ArrayList<MatOfPoint> contourToDraw = new ArrayList<>();
 
