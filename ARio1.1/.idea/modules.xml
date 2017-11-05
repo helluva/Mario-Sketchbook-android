@@ -3,10 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/ARio1.1.iml" filepath="$PROJECT_DIR$/ARio1.1.iml" />
-      <module fileurl="file://$PROJECT_DIR$/ARio1.1.iml" filepath="$PROJECT_DIR$/ARio1.1.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/openCVLibrary24134/openCVLibrary24134.iml" filepath="$PROJECT_DIR$/openCVLibrary24134/openCVLibrary24134.iml" />
       <module fileurl="file://$PROJECT_DIR$/openCVLibrary24134/openCVLibrary24134.iml" filepath="$PROJECT_DIR$/openCVLibrary24134/openCVLibrary24134.iml" />
     </modules>
   </component>
