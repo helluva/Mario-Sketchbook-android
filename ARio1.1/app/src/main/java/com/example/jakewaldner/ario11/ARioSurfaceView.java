@@ -28,6 +28,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -137,7 +138,6 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         for (MatOfPoint intContour : allContours) {
             MatOfPoint2f floatContour = new MatOfPoint2f();
             intContour.convertTo(floatContour, CvType.CV_32FC2);
-            //System.out.print(intContour);
 
             if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), false) >= 0) {
                 return true;
@@ -149,7 +149,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
 
 
-    Bitmap sceneBackground = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_stub);
+    Bitmap uncroppedBackground = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_uncropped_stub);
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     Bitmap contourBitmap = null;
@@ -168,7 +168,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.drawColor(Color.BLACK);
 
         //skew in 3d
-        Camera cam = new Camera();
+        /*Camera cam = new Camera();
         cam.translate(0, 200, 200);
         cam.rotateX(25);
 
@@ -179,10 +179,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int CenterY = canvasHeight / 2;
         m.preTranslate(-CenterX, -CenterY); //This is the key to getting the correct viewing perspective
         m.postTranslate(CenterX, CenterY);
-        canvas.setMatrix(m);
+        canvas.setMatrix(m);*/
 
 
-        canvas.drawBitmap((contourBitmap == null ? sceneBackground : contourBitmap),
+        canvas.drawBitmap((contourBitmap == null ? uncroppedBackground : contourBitmap),
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -195,9 +195,71 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
 
-    public void generateContourBitmap() {
+    public Bitmap generateSceneBitmapFromUncroppedImage() {
+        Bitmap scaledUncropped = Bitmap.createScaledBitmap(uncroppedBackground, canvasWidth, canvasHeight, false);
 
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(sceneBackground, canvasWidth, canvasHeight, false);
+        Mat src = new Mat();
+        Utils.bitmapToMat(scaledUncropped, src);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.blur(src, src, new Size(3, 3));
+
+        Mat edgesMat = new Mat();
+        Imgproc.Canny(src, edgesMat, 0, 200);
+
+        //find the largest rectangle
+        Mat mHierarchy = new Mat();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(edgesMat, contours, mHierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        MatOfPoint2f largestRectangle = null;
+
+        for (MatOfPoint intContour : contours) {
+            MatOfPoint2f floatContour = new MatOfPoint2f();
+            intContour.convertTo(floatContour, CvType.CV_32FC2);
+
+            double arcLength = Imgproc.arcLength(floatContour, true);
+            MatOfPoint2f approximateContour = new MatOfPoint2f();
+            Imgproc.approxPolyDP(floatContour, approximateContour, 0.02 * arcLength, true);
+
+            System.out.println(approximateContour.toList().size());
+
+            if (approximateContour.toList().size() == 4) {
+                double area = Imgproc.contourArea(floatContour);
+                if (largestRectangle == null || area > Imgproc.contourArea(largestRectangle)) {
+                    largestRectangle = approximateContour;
+                }
+            }
+        }
+
+        ArrayList<MatOfPoint> contourToDraw = new ArrayList<>();
+
+        //MatOfPoint intContour = new MatOfPoint();
+        //largestRectangle.convertTo(intContour, CvType.CV_32S);
+        //contourToDraw.add(intContour);
+        //Imgproc.drawContours(src, contourToDraw, 0, new Scalar(255, 0, 0, 255), 10);
+
+        System.out.println(largestRectangle.toArray()[0] +"" + largestRectangle.toArray()[1] +""+ largestRectangle.toArray()[2] + ""+largestRectangle.toArray()[3]);
+
+        MatOfPoint2f destinationMat = new MatOfPoint2f(
+                new Point(canvasWidth - 1, 1),
+                new Point(1, 1),
+                new Point(1, canvasHeight - 1),
+                new Point(canvasWidth - 1, canvasHeight - 1)
+        );
+
+        Mat croppedMat = new Mat();
+        Imgproc.warpPerspective(src, croppedMat,
+                Imgproc.getPerspectiveTransform(largestRectangle, destinationMat),
+                new Size(canvasWidth, canvasHeight));
+
+        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, uncroppedBackground.getConfig());
+        Utils.matToBitmap(croppedMat, tempBmp1);
+        return tempBmp1;
+    }
+
+    public void generateContourBitmap(Bitmap croppedBitmap) {
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(croppedBitmap, canvasWidth, canvasHeight, false);
 
         Mat src = new Mat();
         Utils.bitmapToMat(scaledBitmap, src);
@@ -240,9 +302,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         allContours = contours2;
 
-        // create a blank temp bitmap:
         Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledBitmap.getConfig());
-
         Utils.matToBitmap(src, tempBmp1);
         contourBitmap = tempBmp1;
     }
@@ -282,7 +342,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         public void onManagerConnected(int status) {
             switch (status) {
                 case LoaderCallbackInterface.SUCCESS: {
-                    generateContourBitmap();
+                    Bitmap croppedBitmap = generateSceneBitmapFromUncroppedImage();
+                    generateContourBitmap(croppedBitmap);
                     physicsRunnable.run();
                 }
                 break;
