@@ -52,7 +52,13 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
 
+
+
+
     // MARIO
+    // physics and collision tracking
+
+    Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     public int marioX = 150;
     public int marioY = 150;
@@ -157,7 +163,9 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         return false;
     }
 
-    Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
+
+
+    // Canvas rendering
 
     Bitmap contourBitmap = null;
     List<MatOfPoint> allContours = null;
@@ -201,6 +209,11 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
+
+
+
+    // Image pre-processing
+    // Take the source image, perspective-correct, and then detect shapes
 
     public Bitmap generateSceneBitmapFromUncroppedImage(Bitmap uncroppedBackground) {
         Bitmap scaledUncropped = Bitmap.createScaledBitmap(uncroppedBackground, canvasWidth, canvasHeight, false);
@@ -315,7 +328,9 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
 
-    // Surface view setup
+
+
+    // Configure Surface View
 
     private SurfaceHolder surfaceHolder = null;
     private Handler physicsHandler = new Handler();
