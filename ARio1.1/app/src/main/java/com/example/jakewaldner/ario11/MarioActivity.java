@@ -30,14 +30,6 @@ public class MarioActivity extends AppCompatActivity {
         Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         arioSurface.uncroppedBackground = uncroppedBackground;
 
-        Button goToCodesListButton = (Button) this.findViewById(R.id.return_button);
-        goToCodesListButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent i = new Intent(MarioActivity.this, CameraViewActivity.class);
-                MarioActivity.this.startActivity(i);
-            }
-        });
 
         Button leftButton = (Button) findViewById(R.id.leftButton);
         leftButton.setOnTouchListener(new OnTouchListener() {
@@ -113,6 +105,8 @@ public class MarioActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.newstage_button) {
+            Intent i = new Intent(MarioActivity.this, CameraViewActivity.class);
+            MarioActivity.this.startActivity(i);
             return true;
         }
 
