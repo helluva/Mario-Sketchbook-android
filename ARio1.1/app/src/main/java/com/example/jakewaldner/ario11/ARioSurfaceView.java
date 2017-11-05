@@ -51,7 +51,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public int marioX = 150;
     public int marioY = 150;
 
-    public int marioWidth = 100;
+    public int marioWidth = 125;
     public int marioHeight = (int)((double)marioWidth * (100.0/110.0));
 
     public boolean movingLeft = false;
@@ -74,16 +74,16 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     private void updatePhysics() {
         if (movingRight) {
-            boolean success = commitOffsetIfNoClipping(4, 0, false, true);
+            boolean success = commitOffsetIfNoClipping(8, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(4, -10, false, true);
+                commitOffsetIfNoClipping(8, -10, false, true);
             }
         }
 
         if (movingLeft) {
-            boolean success = commitOffsetIfNoClipping(-4, 0, false, true);
+            boolean success = commitOffsetIfNoClipping(-8, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(-4, -10, false, true);
+                commitOffsetIfNoClipping(-8, -10, false, true);
             }
         }
 

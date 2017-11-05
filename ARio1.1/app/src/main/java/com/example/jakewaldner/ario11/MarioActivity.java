@@ -76,7 +76,7 @@ public class MarioActivity extends AppCompatActivity {
 
         });
 
-        Button jumpButton = (Button) findViewById(R.id.jumpButton);
+        /*Button jumpButton = (Button) findViewById(R.id.jumpButton);
         jumpButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -86,6 +86,25 @@ public class MarioActivity extends AppCompatActivity {
                 }
 
                 arioSurface.jumpIfPossible();
+            }
+        });*/
+
+        Button jumpButton = (Button) findViewById(R.id.jumpButton);
+        jumpButton.setOnTouchListener(new OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                if (arioSurface == null) {
+                    System.out.println("no surface");
+                    return true;
+                }
+
+                System.out.println(motionEvent.getAction());
+
+                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN || motionEvent.getAction() == MotionEvent.ACTION_MOVE) {
+                    arioSurface.jumpIfPossible();
+                }
+
+                return true;
             }
         });
     }

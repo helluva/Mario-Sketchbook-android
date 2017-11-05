@@ -137,7 +137,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                         Intent i = new Intent(CameraViewActivity.this, MarioActivity.class);
 
                         ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
-                        cameraFrameBitmap.compress(Bitmap.CompressFormat.JPEG, 75, stream2);
+                        cameraFrameBitmap.compress(Bitmap.CompressFormat.JPEG, 90, stream2);
                         byte[] byteArray2 = stream2.toByteArray();
                         i.putExtra("entireFrame", byteArray2);
 
