@@ -3,7 +3,10 @@ package com.example.jakewaldner.ario11;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Camera;
 import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
@@ -161,6 +164,23 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         Canvas canvas = surfaceHolder.getSurface().lockCanvas(null);
         this.canvasHeight = canvas.getHeight();
         this.canvasWidth = canvas.getWidth();
+
+        canvas.drawColor(Color.BLACK);
+
+        //skew in 3d
+        Camera cam = new Camera();
+        cam.translate(0, 200, 200);
+        cam.rotateX(25);
+
+        Matrix m = new Matrix();
+        cam.getMatrix(m);
+
+        int CenterX = canvasWidth / 2;
+        int CenterY = canvasHeight / 2;
+        m.preTranslate(-CenterX, -CenterY); //This is the key to getting the correct viewing perspective
+        m.postTranslate(CenterX, CenterY);
+        canvas.setMatrix(m);
+
 
         canvas.drawBitmap((contourBitmap == null ? sceneBackground : contourBitmap),
                 null,
