@@ -1,5 +1,6 @@
 package com.example.jakewaldner.ario11;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -26,6 +27,15 @@ public class MarioActivity extends AppCompatActivity {
         byte[] byteArray = getIntent().getByteArrayExtra("croppedRect");
         Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         arioSurface.uncroppedBackground = uncroppedBackground;
+
+        Button goToCodesListButton = (Button) this.findViewById(R.id.return_button);
+        goToCodesListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(MarioActivity.this, CameraViewActivity.class);
+                MarioActivity.this.startActivity(i);
+            }
+        });
 
         Button leftButton = (Button) findViewById(R.id.leftButton);
         leftButton.setOnTouchListener(new OnTouchListener() {
