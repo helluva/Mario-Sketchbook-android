@@ -79,6 +79,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     Bitmap sceneBackground = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_stub);
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
+    Bitmap contourBitmap = null;
+
     private void renderCanvas() {
         if (surfaceHolder == null) {
             return;
@@ -99,6 +101,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
                 null);
 
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
+    }
+
+    public void generateContourBitmap() {
+
     }
 
 
@@ -138,6 +144,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         System.out.println("Surface created");
         this.surfaceHolder = surfaceHolder;
+
+        generateContourBitmap();
 
         physicsRunnable.run();
     }
