@@ -28,6 +28,7 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -43,6 +44,23 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     Mat testMat;
     private CameraBridgeViewBase mOpenCvCameraView;
 
+//vars for the stage bounds
+    Rect maxRect;
+    int frameCounter = 1;
+    LinkedList<Integer> sumMaxRectX1 = new LinkedList<>();
+    LinkedList<Integer> sumMaxRectY1 = new LinkedList<>();
+    LinkedList<Integer> sumMaxRectX2 = new LinkedList<>();
+    LinkedList<Integer> sumMaxRectY2 = new LinkedList<>();
+    //make arrays!!!!!!!!
+
+
+    int maxRectArea = 0;
+    boolean maxRectFound = false;
+    int maxRectX;
+    int maxRectY;
+    int maxRectWidth;
+    int maxRectHeight;
+
     //open CV's camera requires an async call
     private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
         @Override
@@ -51,7 +69,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                 case LoaderCallbackInterface.SUCCESS: {
                     Log.i("OpenCV", "OpenCV loaded successfully");
                     mOpenCvCameraView.enableView();
-                    //testMat = new Mat();
+                    testMat = new Mat();
                     //an online example instantiated all Mats here
 
                 } break;
@@ -121,7 +139,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         returnedFrameMat = cameraFrame.clone();
 
 
-        /*//now that we have an array of contours, we need to determine what contours form rectangles and isolate the largest of these rectangles
+        //now that we have an array of contours, we need to determine what contours form rectangles and isolate the largest of these rectangles
         MatOfPoint temp_contour;
         for (int i = 0; i < contours.size(); i++) {
             temp_contour = contours.get(i);
@@ -135,6 +153,18 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
             Rect rect = Imgproc.boundingRect(temp_contour);
 
+            if (maxRectArea < rect.width * rect.height) {
+                maxRect = rect;
+
+                maxRectX = rect.x;
+                maxRectY = rect.y;
+                maxRectWidth = rect.width;
+                maxRectHeight = rect.height;
+
+                maxRectArea = rect.width * rect.height;
+                maxRectFound = true;
+            }
+
 
 
 
@@ -142,15 +172,134 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             temp_contour.release();
             temp_contour2f.release();
             approxCurve_temp.release();
-        }*/
+        }
 
 
-        //THIS IS TO CORRECT THE ORIENTATION
+        //THIS IS TO CORRECT THE ORIENTATION DO NOT NEED ANYMORE
         //Mat returnedFrameMatT = returnedFrameMat.t();
         //Core.flip(returnedFrameMat.t(), returnedFrameMatT, 1);
         //Imgproc.resize(returnedFrameMatT, returnedFrameMat, returnedFrameMat.size());
 
+        /*public int sumify(int rectXOrY) {
+
+    }*/
+
+        //COULD put this all in a function
+        if(maxRectFound && verifySizes(maxRect)) {
+            sumMaxRectX1.add(maxRectX);
+            if (sumMaxRectX1.size() > 15) {
+                //this keeps the average coord pool down
+                sumMaxRectX1.remove();
+            }
+            int currMaxRectX1Sum = 0;
+            for (int i = 0; i < sumMaxRectX1.size(); i++) {
+                currMaxRectX1Sum = currMaxRectX1Sum + sumMaxRectX1.get(i);
+            }
+
+            sumMaxRectY1.add(maxRectY);
+            if (sumMaxRectY1.size() > 15) {
+                //this keeps the average coord pool down
+                sumMaxRectY1.remove();
+            }
+            int currMaxRectY1Sum = 0;
+            for (int i = 0; i < sumMaxRectY1.size(); i++) {
+                currMaxRectY1Sum = currMaxRectY1Sum + sumMaxRectY1.get(i);
+            }
+
+            Point averageP1 = new Point(currMaxRectX1Sum / frameCounter, currMaxRectY1Sum / frameCounter);
+
+
+            sumMaxRectX2.add(maxRectX + maxRectWidth);
+            if (sumMaxRectX2.size() > 15) {
+                //this keeps the average coord pool down
+                sumMaxRectX2.remove();
+            }
+            int currMaxRectX2Sum = 0;
+            for (int i = 0; i < sumMaxRectX2.size(); i++) {
+                currMaxRectX2Sum = currMaxRectX2Sum + sumMaxRectX2.get(i);
+            }
+
+            sumMaxRectY2.add(maxRectY + maxRectHeight);
+            if (sumMaxRectY2.size() > 15) {
+                //this keeps the average coord pool down
+                sumMaxRectY2.remove();
+            }
+            int currMaxRectY2Sum = 0;
+            for (int i = 0; i < sumMaxRectX2.size(); i++) {
+                currMaxRectY2Sum = currMaxRectY2Sum + sumMaxRectY2.get(i);
+            }
+
+            //sumMaxRectX2 = (sumMaxRectX2 + (maxRectX + maxRectWidth));
+            //sumMaxRectY2 = (sumMaxRectY2 + (maxRectY + maxRectHeight));
+
+            Point averageP2 = new Point(currMaxRectX2Sum / frameCounter, currMaxRectY2Sum / frameCounter);
+
+            /*if (frameCounter < 15) {
+                Core.rectangle(returnedFrameMat, new Point(maxRectX, maxRectY), new Point(maxRectX + maxRectWidth, maxRectY + maxRectHeight), new Scalar(255, 0, 0, 255), 3);
+
+            } else {
+                Core.rectangle(returnedFrameMat, averageP1, averageP2, new Scalar(255, 0, 0, 255), 3);
+            }*/
+
+            Core.rectangle(returnedFrameMat, averageP1, averageP2, new Scalar(255, 0, 0, 255), 3);
+
+            //can just check one of them since they all increase the same rate
+            if (sumMaxRectX1.size() < 15) {
+                frameCounter++;
+            } else {
+                frameCounter = 15;
+            }
+        }
+        //reset the boolean
+        maxRectFound = false;
+        maxRectArea = 0;
+
+        //Imgproc.rectangle(returnedFrameMat, new Point(finalAlteredFrame.cols()/3, finalAlteredFrame.rows()/15), new Point((finalAlteredFrame.cols()/3) * 2, (finalAlteredFrame.rows()/15) * 14), new Scalar(255, 255, 0, 255), 5);
+
+
+        blurredFrame.release();
+        cameraFrame.release();
+        newGrayFrame.release();
+        dilatedFrame.release();
+        finalAlteredFrame.release();
+        mHierarchy.release();
+
+
+        //just in case from async call
+        testMat.release();
+
         return returnedFrameMat;
+    }
+
+    public boolean verifySizes(Rect rect) {
+        double error = 0.35;
+        //aspect ratio
+        double aspect = 0.75;
+        //Set a min and max area. All other patches are discarded
+        double min = 100*aspect*100; // minimum area
+        double max =800*aspect*800; // maximum area
+        //Get only patches that match to the ratio.
+        double rmin = aspect-aspect*error;
+        double rmax = aspect+aspect*error;
+
+        double area = rect.size().height * rect.size().width;
+        //double r = rect.size().width / rect.size().height;
+        //if(r < 1) {
+        double r = rect.size().height / rect.size().width;
+        //}
+
+        System.out.println("ratio: " + r);
+
+        if((area < min || area > max) ||(r < rmin || r > rmax)){
+            if (area > max) {
+                System.out.println("area problem");
+            }
+            //System.out.println("Drake in Canada");
+            return false;
+        } else {
+            System.out.println("abcdefg");
+            return true;
+        }
     }
 
     @Override
