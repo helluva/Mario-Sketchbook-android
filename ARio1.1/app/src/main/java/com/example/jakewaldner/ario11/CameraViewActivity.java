@@ -106,10 +106,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         cropButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (cameraFrame != null && ((averageP1 != null) && (averageP2 != null))) {
+                if (((cameraFrameBitmap != null) && (cameraFrame != null)) && ((averageP1 != null) && (averageP2 != null))) {
                     System.out.println(averageP1);
                     System.out.println(averageP2);
                     try {
+                        //FIRST EXTRA IS CROPPEDARRAY BITMAP
                         Mat imageCroppedMat = new Mat(cameraFrame, new Rect(averageP1, averageP2));
 
                         Bitmap croppedBitmap = Bitmap.createBitmap(
@@ -124,7 +125,22 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                         ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         croppedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
                         byte[] byteArray = stream.toByteArray();
-                        i.putExtra("croppedRect", byteArray);
+
+                        //****This was too much to send
+                        //i.putExtra("croppedRect", byteArray);
+
+
+
+                        //NEXT EXTRA IS ENTIRE FRAME IN BITMAP
+
+                        //Bitmap cameraFrameBitmap = Bitmap.createBitmap(cameraFrame.cols(), cameraFrame.rows(), Bitmap.Config.ARGB_8888);
+                        //Utils.matToBitmap(cameraFrame, cameraFrameBitmap);
+
+                        ByteArrayOutputStream stream2 = new ByteArrayOutputStream();
+                        cameraFrameBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream2);
+                        byte[] byteArray2 = stream.toByteArray();
+                        i.putExtra("entireFrame", byteArray2);
+
 
                         CameraViewActivity.this.startActivity(i);
 
@@ -145,12 +161,17 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
     //THIS IS WHERE THE PROCESSING MEAT GOES
     Mat returnedFrameMat;
     Mat cameraFrame;
+    Bitmap cameraFrameBitmap;
     Point averageP1;
     Point averageP2;
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         //THIS FRAME IS NOW A MAT OBJECT
         cameraFrame = inputFrame.rgba();
         Log.d("Mat1", "" + cameraFrame);
+
+        //****Makes Bitmap of current cameraFrame
+        cameraFrameBitmap = Bitmap.createBitmap(cameraFrame.cols(), cameraFrame.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(cameraFrame, cameraFrameBitmap);
 
         //grayscale the frame
         Mat newGrayFrame = new Mat();

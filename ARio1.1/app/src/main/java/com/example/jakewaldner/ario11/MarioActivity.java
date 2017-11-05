@@ -26,7 +26,7 @@ public class MarioActivity extends AppCompatActivity {
 
         final ARioSurfaceView arioSurface = (ARioSurfaceView) findViewById(R.id.ario_surface);
 
-        byte[] byteArray = getIntent().getByteArrayExtra("croppedRect");
+        byte[] byteArray = getIntent().getByteArrayExtra("entireFrame");
         Bitmap uncroppedBackground = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
         arioSurface.uncroppedBackground = uncroppedBackground;
 
