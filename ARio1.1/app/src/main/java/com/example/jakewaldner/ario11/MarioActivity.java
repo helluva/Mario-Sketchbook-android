@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.widget.Button;
 
 public class MarioActivity extends AppCompatActivity {
@@ -21,7 +22,7 @@ public class MarioActivity extends AppCompatActivity {
         final ARioSurfaceView arioSurface = (ARioSurfaceView) findViewById(R.id.ario_surface);
 
         Button leftButton = (Button) findViewById(R.id.leftButton);
-        leftButton.setOnTouchListener(new View.OnTouchListener() {
+        leftButton.setOnTouchListener(new OnTouchListener() {
 
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -42,7 +43,7 @@ public class MarioActivity extends AppCompatActivity {
         });
 
         Button rightButton = (Button) findViewById(R.id.rightButton);
-        rightButton.setOnTouchListener(new View.OnTouchListener() {
+        rightButton.setOnTouchListener(new OnTouchListener() {
 
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -60,6 +61,19 @@ public class MarioActivity extends AppCompatActivity {
                 return true;
             }
 
+        });
+
+        Button jumpButton = (Button) findViewById(R.id.jumpButton);
+        jumpButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (arioSurface == null) {
+                    System.out.println("no surface");
+                    return;
+                }
+
+                arioSurface.jumpIfPossible();
+            }
         });
     }
 
