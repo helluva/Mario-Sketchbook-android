@@ -274,12 +274,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         double secondCoordinateDifference = abs(destinationMat.toList().get(1).x - destinationMat.toList().get(1).y);
         if (secondCoordinateDifference > firstCoordinateDifference) {
 
-            destinationMat = new MatOfPoint2f(
-                    new Point(1, 1),
-                    new Point(canvasWidth - 1, 1),
-                    new Point(canvasWidth - 1, canvasHeight - 1),
-                    new Point(1, canvasHeight - 1),
-            );
+            Imgproc.
+
         }
 
         Mat croppedMat = new Mat();
