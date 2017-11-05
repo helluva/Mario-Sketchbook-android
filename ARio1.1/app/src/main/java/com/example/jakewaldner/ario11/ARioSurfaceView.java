@@ -28,6 +28,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +43,14 @@ import static java.lang.Math.pow;
  */
 
 public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+
+
+    public void startRenderingSceneWithBitmap(Bitmap bitmap) {
+        Bitmap croppedBitmap = generateSceneBitmapFromUncroppedImage(bitmap);
+        generateContourBitmap(croppedBitmap);
+        physicsRunnable.run();
+    }
+
 
     // MARIO
 
@@ -70,25 +79,23 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void updatePhysics() {
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-
         if (movingRight) {
             boolean success = commitOffsetIfNoClipping(4, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(4, -4, false, true);
+                commitOffsetIfNoClipping(4, -10, false, true);
             }
         }
 
         if (movingLeft) {
             boolean success = commitOffsetIfNoClipping(-4, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(-4, -4, false, true);
+                commitOffsetIfNoClipping(-4, -10, false, true);
             }
         }
+
+        commitOffsetIfNoClipping(0, 4, false, true); //gravity
+        commitOffsetIfNoClipping(0, 4, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
 
         if (jumpStartTime != null) {
             long timeSinceJumpStart = System.currentTimeMillis() - jumpStartTime.getTime();
@@ -113,6 +120,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (!marioClipsWithContoursWhenOffsetBy(xOffset, yOffset, onTop, onBottom)) {
             marioX += xOffset;
             marioY += yOffset;
+
+            System.out.println("OFFSET: (" + xOffset + "," + yOffset + ")");
             return true;
         }
 
@@ -124,8 +133,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int originY = marioY + yOffset;
 
         return (onTop && pointClipsWithContours(originX, originY))
+                || (onTop && pointClipsWithContours(originX + (int)((double)marioWidth * 0.5), originY))
                 || (onTop && pointClipsWithContours(originX + marioWidth, originY))
                 || (onBottom && pointClipsWithContours(originX, originY + marioHeight))
+                || (onBottom && pointClipsWithContours(originX + (int)((double)marioWidth * 0.5), originY + marioHeight))
                 || (onBottom && pointClipsWithContours(originX + marioWidth, originY + marioHeight));
     }
 
@@ -137,9 +148,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         for (MatOfPoint intContour : allContours) {
             MatOfPoint2f floatContour = new MatOfPoint2f();
             intContour.convertTo(floatContour, CvType.CV_32FC2);
-            //System.out.print(intContour);
 
-            if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), false) >= 0) {
+            if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), true) >= -1) {
                 return true;
             }
         }
@@ -147,9 +157,6 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         return false;
     }
 
-
-
-    Bitmap sceneBackground = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_stub);
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     Bitmap contourBitmap = null;
@@ -157,7 +164,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
 
     private void renderCanvas() {
-        if (surfaceHolder == null) {
+        if (surfaceHolder == null || contourBitmap == null) {
             return;
         }
 
@@ -168,7 +175,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.drawColor(Color.BLACK);
 
         //skew in 3d
-        Camera cam = new Camera();
+        /*Camera cam = new Camera();
         cam.translate(0, 200, 200);
         cam.rotateX(25);
 
@@ -179,10 +186,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int CenterY = canvasHeight / 2;
         m.preTranslate(-CenterX, -CenterY); //This is the key to getting the correct viewing perspective
         m.postTranslate(CenterX, CenterY);
-        canvas.setMatrix(m);
+        canvas.setMatrix(m);*/
 
 
-        canvas.drawBitmap((contourBitmap == null ? sceneBackground : contourBitmap),
+        canvas.drawBitmap(contourBitmap,
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -195,9 +202,71 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
 
-    public void generateContourBitmap() {
+    public Bitmap generateSceneBitmapFromUncroppedImage(Bitmap uncroppedBackground) {
+        Bitmap scaledUncropped = Bitmap.createScaledBitmap(uncroppedBackground, canvasWidth, canvasHeight, false);
 
-        Bitmap scaledBitmap = Bitmap.createScaledBitmap(sceneBackground, canvasWidth, canvasHeight, false);
+        Mat src = new Mat();
+        Utils.bitmapToMat(scaledUncropped, src);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.blur(src, src, new Size(3, 3));
+
+        Mat edgesMat = new Mat();
+        Imgproc.Canny(src, edgesMat, 0, 200);
+
+        //find the largest rectangle
+        Mat mHierarchy = new Mat();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(edgesMat, contours, mHierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        MatOfPoint2f largestRectangle = null;
+
+        for (MatOfPoint intContour : contours) {
+            MatOfPoint2f floatContour = new MatOfPoint2f();
+            intContour.convertTo(floatContour, CvType.CV_32FC2);
+
+            double arcLength = Imgproc.arcLength(floatContour, true);
+            MatOfPoint2f approximateContour = new MatOfPoint2f();
+            Imgproc.approxPolyDP(floatContour, approximateContour, 0.02 * arcLength, true);
+
+            System.out.println(approximateContour.toList().size());
+
+            if (approximateContour.toList().size() == 4) {
+                double area = Imgproc.contourArea(floatContour);
+                if (largestRectangle == null || area > Imgproc.contourArea(largestRectangle)) {
+                    largestRectangle = approximateContour;
+                }
+            }
+        }
+
+        ArrayList<MatOfPoint> contourToDraw = new ArrayList<>();
+
+        //MatOfPoint intContour = new MatOfPoint();
+        //largestRectangle.convertTo(intContour, CvType.CV_32S);
+        //contourToDraw.add(intContour);
+        //Imgproc.drawContours(src, contourToDraw, 0, new Scalar(255, 0, 0, 255), 10);
+
+        System.out.println(largestRectangle.toArray()[0] +"" + largestRectangle.toArray()[1] +""+ largestRectangle.toArray()[2] + ""+largestRectangle.toArray()[3]);
+
+        MatOfPoint2f destinationMat = new MatOfPoint2f(
+                new Point(canvasWidth - 1, 1),
+                new Point(1, 1),
+                new Point(1, canvasHeight - 1),
+                new Point(canvasWidth - 1, canvasHeight - 1)
+        );
+
+        Mat croppedMat = new Mat();
+        Imgproc.warpPerspective(src, croppedMat,
+                Imgproc.getPerspectiveTransform(largestRectangle, destinationMat),
+                new Size(canvasWidth, canvasHeight));
+
+        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, uncroppedBackground.getConfig());
+        Utils.matToBitmap(croppedMat, tempBmp1);
+        return tempBmp1;
+    }
+
+    public void generateContourBitmap(Bitmap croppedBitmap) {
+
+        Bitmap scaledBitmap = Bitmap.createScaledBitmap(croppedBitmap, canvasWidth, canvasHeight, false);
 
         Mat src = new Mat();
         Utils.bitmapToMat(scaledBitmap, src);
@@ -240,9 +309,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
         allContours = contours2;
 
-        // create a blank temp bitmap:
         Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledBitmap.getConfig());
-
         Utils.matToBitmap(src, tempBmp1);
         contourBitmap = tempBmp1;
     }
@@ -277,42 +344,22 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.getHolder().addCallback(this);
     }
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this.getContext()) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    generateContourBitmap();
-                    physicsRunnable.run();
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
-            }
-        }
-    };
-
     // Callbacks
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         System.out.println("Surface created");
         this.surfaceHolder = surfaceHolder;
-        renderCanvas();
-
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_13, this.getContext(), mLoaderCallback);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-        System.out.println("Surface changed");
+
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        System.out.println("Surface destroyed");
+
     }
 
 }
