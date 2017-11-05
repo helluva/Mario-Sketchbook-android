@@ -9,10 +9,12 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.os.Handler;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
 
 import com.example.jakewaldner.ario11.R;
 
@@ -42,16 +44,19 @@ import static java.lang.Math.pow;
  * Created by cal on 11/4/17.
  */
 
-public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
+public class ARioSurfaceView extends View {
 
+    private boolean hasStartedProcessingBitmap = false;
 
     public void startRenderingSceneWithBitmap(Bitmap bitmap) {
+        if (hasStartedProcessingBitmap) {
+            return;
+        }
+
+        hasStartedProcessingBitmap = true;
         Bitmap croppedBitmap = generateSceneBitmapFromUncroppedImage(bitmap);
         generateContourBitmap(croppedBitmap);
-        physicsRunnable.run();
     }
-
-
 
 
 
@@ -126,8 +131,6 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (!marioClipsWithContoursWhenOffsetBy(xOffset, yOffset, onTop, onBottom)) {
             marioX += xOffset;
             marioY += yOffset;
-
-            System.out.println("OFFSET: (" + xOffset + "," + yOffset + ")");
             return true;
         }
 
@@ -167,20 +170,34 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     // Canvas rendering
 
-    Bitmap contourBitmap = null;
+    Mat contourMat = null;
     List<MatOfPoint> allContours = null;
 
 
-    private void renderCanvas() {
-        if (surfaceHolder == null || contourBitmap == null) {
-            return;
+    public void renderOntoMapInRect(Mat cameraMat, MatOfPoint2f destinationRect) {
+
+        updatePhysics();
+
+        System.out.println("RENDERING AR CANVAS");
+
+        this.canvasHeight = cameraMat.height();
+        this.canvasWidth = cameraMat.width();
+
+
+        if (contourMat != null) {
+            MatOfPoint2f originRect = new MatOfPoint2f(
+                    new Point(canvasWidth - 1, 1),
+                    new Point(1, 1),
+                    new Point(1, canvasHeight - 1),
+                    new Point(canvasWidth - 1, canvasHeight - 1)
+            );
+
+            Imgproc.warpPerspective(contourMat, cameraMat,
+                    Imgproc.getPerspectiveTransform(originRect, destinationRect),
+                    new Size(canvasWidth, canvasHeight));
+
         }
 
-        Canvas canvas = surfaceHolder.getSurface().lockCanvas(null);
-        this.canvasHeight = canvas.getHeight();
-        this.canvasWidth = canvas.getWidth();
-
-        canvas.drawColor(Color.BLACK);
 
         //skew in 3d
         /*Camera cam = new Camera();
@@ -196,18 +213,17 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         m.postTranslate(CenterX, CenterY);
         canvas.setMatrix(m);*/
 
+        /*if (contourBitmap != null) {
+            canvas.drawBitmap(contourBitmap,
+                    null,
+                    new Rect(0, 0, canvasWidth, canvasHeight),
+                    null);
 
-        canvas.drawBitmap(contourBitmap,
-                null,
-                new Rect(0, 0, canvasWidth, canvasHeight),
-                null);
-
-        canvas.drawBitmap(marioSprite,
-                null,
-                new Rect(marioX, marioY, marioX + marioHeight, marioY + marioHeight),
-                null);
-
-        surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
+            canvas.drawBitmap(marioSprite,
+                    null,
+                    new Rect(marioX, marioY, marioX + marioHeight, marioY + marioHeight),
+                    null);
+        }*/
     }
 
 
@@ -321,60 +337,18 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
 
         allContours = contours2;
-
-        Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledBitmap.getConfig());
-        Utils.matToBitmap(src, tempBmp1);
-        contourBitmap = tempBmp1;
+        contourMat = src;
     }
-
 
 
 
     // Configure Surface View
 
-    private SurfaceHolder surfaceHolder = null;
-    private Handler physicsHandler = new Handler();
-
     private int canvasHeight;
     private int canvasWidth;
 
-    private Runnable physicsRunnable = new Runnable() {
-        @Override
-        public void run() {
-            renderCanvas();
-            updatePhysics();
-
-            //repeat
-            physicsHandler.postDelayed(physicsRunnable,3);
-        }
-    };
-
-    public ARioSurfaceView(Context context, AttributeSet attributeSet) {
-        super(context, attributeSet);
-    }
-
-    @Override
-    protected void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        this.getHolder().addCallback(this);
-    }
-
-    // Callbacks
-
-    @Override
-    public void surfaceCreated(SurfaceHolder surfaceHolder) {
-        System.out.println("Surface created");
-        this.surfaceHolder = surfaceHolder;
-    }
-
-    @Override
-    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-
-    }
-
-    @Override
-    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-
+    public ARioSurfaceView(Context context, @Nullable AttributeSet attrs) {
+        super(context, attrs);
     }
 
 }

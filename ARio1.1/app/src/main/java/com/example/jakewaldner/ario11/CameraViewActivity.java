@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.support.constraint.solver.widgets.Rectangle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
@@ -112,6 +113,8 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                     try {
                         Mat imageCroppedMat = new Mat(cameraFrame, new Rect(averageP1, averageP2));
 
+                        System.out.println("imageCroppedMat has width " + imageCroppedMat.width() + " and height " + imageCroppedMat.height());
+
                         Bitmap croppedBitmap = Bitmap.createBitmap(
                                 imageCroppedMat.width(),
                                 imageCroppedMat.height(),
@@ -119,6 +122,7 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
 
                         Utils.matToBitmap(imageCroppedMat, croppedBitmap);
                         arSurface.startRenderingSceneWithBitmap(croppedBitmap);
+                        mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
 
                         imageCroppedMat.release();
                     } catch(CvException e) {
@@ -284,6 +288,28 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
             } else {
                 frameCounter = 15;
             }
+
+
+
+
+
+            // ALSO TIME TO RENDER THE AR
+
+            Rect averageRect = new Rect(averageP1, averageP2);
+            Point topRight = averageP1;
+            Point bottomLeft = averageP2;
+
+            MatOfPoint2f pageRect = new MatOfPoint2f(
+                    new Point(topRight.x + averageRect.width, topRight.y),
+                    new Point(topRight.x + averageRect.width, topRight.y + averageRect.height),
+                    new Point(topRight.x, topRight.y + averageRect.height),
+                    new Point(topRight.x, topRight.y)
+            );
+
+            ARioSurfaceView arSurface = (ARioSurfaceView) this.findViewById(R.id.ar_surface_view);
+            arSurface.renderOntoMapInRect(returnedFrameMat, pageRect);
+
+
         }
         //reset the boolean
         maxRectFound = false;
