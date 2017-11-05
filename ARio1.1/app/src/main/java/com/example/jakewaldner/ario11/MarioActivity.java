@@ -104,6 +104,8 @@ public class MarioActivity extends AppCompatActivity {
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.newstage_button) {
+            Intent i = new Intent(MarioActivity.this, CameraViewActivity.class);
+            MarioActivity.this.startActivity(i);
             return true;
         }
 

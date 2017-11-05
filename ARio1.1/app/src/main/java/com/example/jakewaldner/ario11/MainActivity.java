@@ -39,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.startActivity(i);
             }
         });
+
+        Intent i = new Intent(MainActivity.this, CameraViewActivity.class);
+        MainActivity.this.startActivity(i);
     }
 
 }

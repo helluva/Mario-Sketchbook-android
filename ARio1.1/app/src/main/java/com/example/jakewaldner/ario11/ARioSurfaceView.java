@@ -50,7 +50,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public int marioX = 150;
     public int marioY = 150;
 
-    public int marioWidth = 150;
+    public int marioWidth = 100;
     public int marioHeight = (int)((double)marioWidth * (100.0/110.0));
 
     public boolean movingLeft = false;
@@ -272,15 +272,18 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         //rotate mat if it's not oriented correctly
         double firstCoordinateDifference = abs(destinationMat.toList().get(0).x - destinationMat.toList().get(0).y);
         double secondCoordinateDifference = abs(destinationMat.toList().get(1).x - destinationMat.toList().get(1).y);
-        if (secondCoordinateDifference > firstCoordinateDifference) {
 
-            Imgproc.
+        boolean flip = (secondCoordinateDifference > firstCoordinateDifference);
 
+        Mat transform = Imgproc.getPerspectiveTransform(largestRectangle, destinationMat);
+        if (flip) {
+            //idk, maybe rotate the transform mat somehow
         }
+
 
         Mat croppedMat = new Mat();
         Imgproc.warpPerspective(src, croppedMat,
-                Imgproc.getPerspectiveTransform(largestRectangle, destinationMat),
+                transform,
                 new Size(canvasWidth, canvasHeight));
 
         Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, uncroppedBackground.getConfig());

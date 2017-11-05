@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ARio1.1</string>
+    <string name="app_name">ARio</string>
     <string name="action_settings">Settings</string>
-    <string name="title_activity_mario">MarioActivity</string>
+    <string name="title_activity_mario">Mario</string>
 </resources>
