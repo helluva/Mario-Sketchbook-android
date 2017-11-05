@@ -44,6 +44,14 @@ import static java.lang.Math.pow;
 
 public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callback {
 
+
+    public void startRenderingSceneWithBitmap(Bitmap bitmap) {
+        Bitmap croppedBitmap = generateSceneBitmapFromUncroppedImage(bitmap);
+        generateContourBitmap(croppedBitmap);
+        physicsRunnable.run();
+    }
+
+
     // MARIO
 
     public int marioX = 150;
@@ -149,9 +157,6 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         return false;
     }
 
-
-
-    Bitmap uncroppedBackground = BitmapFactory.decodeResource(getResources(), R.drawable.ario_scene_uncropped_stub);
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     Bitmap contourBitmap = null;
@@ -159,7 +164,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
 
     private void renderCanvas() {
-        if (surfaceHolder == null) {
+        if (surfaceHolder == null || contourBitmap == null) {
             return;
         }
 
@@ -184,7 +189,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         canvas.setMatrix(m);*/
 
 
-        canvas.drawBitmap((contourBitmap == null ? uncroppedBackground : contourBitmap),
+        canvas.drawBitmap(contourBitmap,
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -197,7 +202,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         surfaceHolder.getSurface().unlockCanvasAndPost(canvas);
     }
 
-    public Bitmap generateSceneBitmapFromUncroppedImage() {
+    public Bitmap generateSceneBitmapFromUncroppedImage(Bitmap uncroppedBackground) {
         Bitmap scaledUncropped = Bitmap.createScaledBitmap(uncroppedBackground, canvasWidth, canvasHeight, false);
 
         Mat src = new Mat();
@@ -339,43 +344,22 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.getHolder().addCallback(this);
     }
 
-    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this.getContext()) {
-        @Override
-        public void onManagerConnected(int status) {
-            switch (status) {
-                case LoaderCallbackInterface.SUCCESS: {
-                    Bitmap croppedBitmap = generateSceneBitmapFromUncroppedImage();
-                    generateContourBitmap(croppedBitmap);
-                    physicsRunnable.run();
-                }
-                break;
-                default: {
-                    super.onManagerConnected(status);
-                }
-                break;
-            }
-        }
-    };
-
     // Callbacks
 
     @Override
     public void surfaceCreated(SurfaceHolder surfaceHolder) {
         System.out.println("Surface created");
         this.surfaceHolder = surfaceHolder;
-        renderCanvas();
-
-        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_13, this.getContext(), mLoaderCallback);
     }
 
     @Override
     public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
-        System.out.println("Surface changed");
+
     }
 
     @Override
     public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
-        System.out.println("Surface destroyed");
+
     }
 
 }
