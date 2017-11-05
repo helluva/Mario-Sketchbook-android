@@ -71,25 +71,23 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     private void updatePhysics() {
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-        commitOffsetIfNoClipping(0, 2, false, true); //gravity
-
         if (movingRight) {
             boolean success = commitOffsetIfNoClipping(4, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(4, -4, false, true);
+                commitOffsetIfNoClipping(4, -10, false, true);
             }
         }
 
         if (movingLeft) {
             boolean success = commitOffsetIfNoClipping(-4, 0, false, true);
             if (!success) { //try to walk over a small hump if mario can't move sideways
-                commitOffsetIfNoClipping(-4, -4, false, true);
+                commitOffsetIfNoClipping(-4, -10, false, true);
             }
         }
+
+        commitOffsetIfNoClipping(0, 4, false, true); //gravity
+        commitOffsetIfNoClipping(0, 4, false, true); //gravity
+        commitOffsetIfNoClipping(0, 2, false, true); //gravity
 
         if (jumpStartTime != null) {
             long timeSinceJumpStart = System.currentTimeMillis() - jumpStartTime.getTime();
@@ -114,6 +112,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (!marioClipsWithContoursWhenOffsetBy(xOffset, yOffset, onTop, onBottom)) {
             marioX += xOffset;
             marioY += yOffset;
+
+            System.out.println("OFFSET: (" + xOffset + "," + yOffset + ")");
             return true;
         }
 
@@ -125,8 +125,10 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         int originY = marioY + yOffset;
 
         return (onTop && pointClipsWithContours(originX, originY))
+                || (onTop && pointClipsWithContours(originX + (int)((double)marioWidth * 0.5), originY))
                 || (onTop && pointClipsWithContours(originX + marioWidth, originY))
                 || (onBottom && pointClipsWithContours(originX, originY + marioHeight))
+                || (onBottom && pointClipsWithContours(originX + (int)((double)marioWidth * 0.5), originY + marioHeight))
                 || (onBottom && pointClipsWithContours(originX + marioWidth, originY + marioHeight));
     }
 
@@ -139,7 +141,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             MatOfPoint2f floatContour = new MatOfPoint2f();
             intContour.convertTo(floatContour, CvType.CV_32FC2);
 
-            if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), false) >= 0) {
+            if (Imgproc.pointPolygonTest(floatContour, new Point(x, y), true) >= -1) {
                 return true;
             }
         }
