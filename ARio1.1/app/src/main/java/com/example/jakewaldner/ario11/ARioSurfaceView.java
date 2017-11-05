@@ -38,6 +38,7 @@ import static java.lang.Math.abs;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 import static java.lang.Math.pow;
+import static java.lang.Math.sqrt;
 
 /**
  * Created by cal on 11/4/17.
@@ -265,12 +266,28 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         System.out.println("CORNERS::::");
         System.out.println(largestRectangle.toArray()[0] +"" + largestRectangle.toArray()[1] +""+ largestRectangle.toArray()[2] + ""+largestRectangle.toArray()[3]);
 
-        MatOfPoint2f destinationMat = new MatOfPoint2f(
-                new Point(0, 0),
-                new Point(0, canvasHeight),
-                new Point(canvasWidth, canvasHeight),
-                 new Point(canvasWidth, 0)
-        );
+        double topLeftEdge = sqrt(pow(largestRectangle.toArray()[0].x - largestRectangle.toArray()[1].x, 2) + pow(largestRectangle.toArray()[0].y - largestRectangle.toArray()[1].y, 2));
+        double topRightEdge = sqrt(pow(largestRectangle.toArray()[0].x - largestRectangle.toArray()[3].x, 2) + pow(largestRectangle.toArray()[0].y - largestRectangle.toArray()[3].y, 2));
+
+        MatOfPoint2f destinationMat = null;
+
+        if (topLeftEdge < topRightEdge) {
+            System.out.println("TOP CASE");
+            destinationMat = new MatOfPoint2f(
+                    new Point(canvasWidth, 0),
+                    new Point(0, 0),
+                    new Point(0, canvasHeight),
+                    new Point(canvasWidth, canvasHeight)
+            );
+        } else {
+            System.out.println("BOTTOM CASE");
+            destinationMat = new MatOfPoint2f(
+                    new Point(0, 0),
+                    new Point(0, canvasHeight),
+                    new Point(canvasWidth, canvasHeight),
+                    new Point(canvasWidth, 0)
+            );
+        }
 
         //rotate mat if it's not oriented correctly
         Mat transform = Imgproc.getPerspectiveTransform(largestRectangle, destinationMat);
@@ -281,6 +298,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
                 new Size(canvasWidth, canvasHeight));
 
         System.out.println("src size: " + src.width() + " " + src.height());
+
+        //return scaledUncropped;
 
         Bitmap tempBmp1 = Bitmap.createBitmap(canvasWidth, canvasHeight, scaledUncropped.getConfig());
         Utils.matToBitmap(croppedMat, tempBmp1);
