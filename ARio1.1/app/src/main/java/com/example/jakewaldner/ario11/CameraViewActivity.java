@@ -117,11 +117,11 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         Imgproc.dilate (newGrayFrame, dilatedFrame, new Mat());
 
         Mat blurredFrame = new Mat();
-        Imgproc.GaussianBlur(dilatedFrame, blurredFrame, new  org.opencv.core.Size(1, 1), 2, 2);
+        Imgproc.GaussianBlur(dilatedFrame, blurredFrame, new  org.opencv.core.Size(75, 75), 20, 20);
 
         //this finds all edge points
         Mat finalAlteredFrame = new Mat();
-        Imgproc.Canny(blurredFrame, finalAlteredFrame, 0, 200, 3, true);
+        Imgproc.Canny(blurredFrame, finalAlteredFrame, 0, 200, 30, true);
         Log.d("Mat2", "" + finalAlteredFrame);
 
         //this finds contours, connected edge points
