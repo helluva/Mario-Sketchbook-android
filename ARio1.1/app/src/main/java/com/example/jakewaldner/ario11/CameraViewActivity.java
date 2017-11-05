@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +20,7 @@ import org.opencv.android.BaseLoaderCallback;
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.CvException;
 import org.opencv.core.Mat;
@@ -99,6 +101,8 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
         mOpenCvCameraView.setCvCameraViewListener(this);
 
         Button cropButton = (Button) this.findViewById(R.id.crop_button);
+        final ARioSurfaceView arSurface = (ARioSurfaceView) this.findViewById(R.id.ar_surface_view);
+
         cropButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -109,6 +113,15 @@ public class CameraViewActivity extends Activity implements CameraBridgeViewBase
                     System.out.println(maxRect.height);
                     try {
                         Mat imageCroppedMat = new Mat(cameraFrame, maxRect);
+
+                        Bitmap croppedBitmap = Bitmap.createBitmap(
+                                imageCroppedMat.width(),
+                                imageCroppedMat.height(),
+                                Bitmap.Config.ARGB_8888);
+
+                        Utils.matToBitmap(imageCroppedMat, croppedBitmap);
+                        arSurface.startRenderingSceneWithBitmap(croppedBitmap);
+
                         imageCroppedMat.release();
                     } catch(CvException e) {
                         Toast.makeText(CameraViewActivity.this, "Whoops, didn't get that! Try again.",Toast.LENGTH_SHORT).show();

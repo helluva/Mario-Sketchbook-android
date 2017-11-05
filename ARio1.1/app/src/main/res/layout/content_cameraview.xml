@@ -21,6 +21,15 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true" />
 
+    <com.example.jakewaldner.ario11.ARioSurfaceView
+        android:id="@+id/ar_surface_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true" />
+
     <Button
         android:id="@+id/crop_button"
         android:layout_width="wrap_content"
