@@ -7,12 +7,28 @@ import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import com.example.jakewaldner.ario11.R;
 
+import org.opencv.android.BaseLoaderCallback;
+import org.opencv.android.LoaderCallbackInterface;
+import org.opencv.android.OpenCVLoader;
+import org.opencv.android.Utils;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Point;
+import org.opencv.core.Scalar;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -72,6 +88,26 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
             marioX = min(max(0, marioX), canvasWidth - marioWidth);
         }
 
+        System.out.println(marioClipsWithContours());
+
+    }
+
+    private boolean marioClipsWithContours() {
+        if (allContours == null) {
+            return false;
+        }
+
+        for (MatOfPoint intContour : allContours) {
+            MatOfPoint2f floatContour = new MatOfPoint2f();
+            intContour.convertTo(floatContour, CvType.CV_32FC2);
+            System.out.print(intContour);
+
+            if (Imgproc.pointPolygonTest(floatContour, new Point(marioX, marioY), false) >= 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -80,6 +116,8 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     Bitmap marioSprite = BitmapFactory.decodeResource(getResources(), R.drawable.mario_small);
 
     Bitmap contourBitmap = null;
+    List<MatOfPoint> allContours = null;
+
 
     private void renderCanvas() {
         if (surfaceHolder == null) {
@@ -90,7 +128,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.canvasHeight = canvas.getHeight();
         this.canvasWidth = canvas.getWidth();
 
-        canvas.drawBitmap(sceneBackground,
+        canvas.drawBitmap(contourBitmap,
                 null,
                 new Rect(0, 0, canvasWidth, canvasHeight),
                 null);
@@ -104,7 +142,53 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     public void generateContourBitmap() {
+        Mat src = new Mat();
+        Utils.bitmapToMat(sceneBackground, src);
+        Imgproc.cvtColor(src, src, Imgproc.COLOR_RGB2GRAY);
+        Imgproc.dilate (src, src, Imgproc.getStructuringElement(Imgproc.MORPH_RECT, new Size(2, 2)));
+        Imgproc.blur(src, src, new Size(3, 3));
 
+        //this finds all edge points
+
+        Mat edgesMat = new Mat();
+        Imgproc.Canny(src, edgesMat, 0, 200);
+
+        //this finds contours, connected edge points
+        Mat mHierarchy = new Mat();
+        List<MatOfPoint> contours = new ArrayList<>();
+        Imgproc.findContours(edgesMat, contours, mHierarchy, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        Mat roughContoursMat = src.clone();
+
+        System.out.println("INITIALLY loaded " + contours.size() + " contours");
+        // find contours:
+        for (int contourIdx = 0; contourIdx < contours.size(); contourIdx++) {
+            Imgproc.drawContours(roughContoursMat, contours, contourIdx, new Scalar(0, 0, 255), 40);
+        }
+
+        Imgproc.blur(src, roughContoursMat, new Size(3, 3));
+
+        Mat edgesMat2 = new Mat();
+        Imgproc.Canny(roughContoursMat, edgesMat2, 0, 200);
+
+        Mat mHierarchy2 = new Mat();
+        List<MatOfPoint> contours2 = new ArrayList<>();
+        Imgproc.findContours(edgesMat2, contours2, mHierarchy2, Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
+        System.out.println("then loaded " + contours2.size() + " contours");
+
+        // find contours:
+        for (int contourIdx = 0; contourIdx < contours2.size(); contourIdx++) {
+            Imgproc.drawContours(src, contours2, contourIdx, new Scalar(0, 150, 255, 150), 20);
+        }
+
+        allContours = contours2;
+
+        // create a blank temp bitmap:
+        Bitmap tempBmp1 = Bitmap.createBitmap(sceneBackground.getWidth(), sceneBackground.getHeight(),
+                sceneBackground.getConfig());
+
+        Utils.matToBitmap(src, tempBmp1);
+        contourBitmap = tempBmp1;
     }
 
 
@@ -137,6 +221,22 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.getHolder().addCallback(this);
     }
 
+    private BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this.getContext()) {
+        @Override
+        public void onManagerConnected(int status) {
+            switch (status) {
+                case LoaderCallbackInterface.SUCCESS: {
+                    generateContourBitmap();
+                    physicsRunnable.run();
+                }
+                break;
+                default: {
+                    super.onManagerConnected(status);
+                }
+                break;
+            }
+        }
+    };
 
     // Callbacks
 
@@ -145,9 +245,7 @@ public class ARioSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         System.out.println("Surface created");
         this.surfaceHolder = surfaceHolder;
 
-        generateContourBitmap();
-
-        physicsRunnable.run();
+        OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION_2_4_13, this.getContext(), mLoaderCallback);
     }
 
     @Override
